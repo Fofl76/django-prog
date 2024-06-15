@@ -14,7 +14,7 @@ class GuestAdmin(admin.ModelAdmin):
 
 @admin.register(Room)
 class RoomAdmin(admin.ModelAdmin):
-    list_display = ('room_number', 'room_type', 'price_per_night', 'max_occupancy')
+    list_display = ('room_number', 'room_type', 'price_per_night', 'max_occupancy', 'image')
     list_filter = ('room_type',)
     search_fields = ('room_number', 'room_type')
     inlines = [AmenityInline]

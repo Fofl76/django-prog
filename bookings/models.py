@@ -13,6 +13,7 @@ class Room(models.Model):
     price_per_night = models.DecimalField(max_digits=6, decimal_places=2)
     max_occupancy = models.IntegerField()
     amenities = models.ManyToManyField('Amenity', blank=True)
+    image = models.ImageField(upload_to= 'images/')
 
 class Guest(models.Model):
     first_name = models.CharField(max_length=100)
