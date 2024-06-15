@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Book Room</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <h1>Book Room {{ room.room_number }}</h1>
+    <p>Room Type: {{ room.room_type }}</p>
+    <p>Price per Night: ${{ room.price_per_night }}</p>
+    <p>Amenities: {{ room.get_amenities }}</p>
+    <!-- Form for booking will go here -->
+</body>
+</html>
