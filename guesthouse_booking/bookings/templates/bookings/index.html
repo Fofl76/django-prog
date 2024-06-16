@@ -12,7 +12,7 @@
 </head>
 <body>
     <header class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">Guesthouse Booking</a>
+        <a class="navbar-brand" href="#">Гостевой дом Приветливый</a>
         <div class="ml-auto">
             {% if user.is_authenticated %}
                 <button class="btn btn-secondary" data-toggle="modal" data-target="#reviewModal">Отзывы</button>
@@ -28,22 +28,30 @@
     </header>
 
     <div class="container">
-        <h1 class="mt-4">Available Rooms</h1>
+        <h1 class="mt-4">Доступные номера</h1>
+        {% if user.is_superuser %}
+            <a href="{% url 'add_room' %}" class="btn btn-success mb-3">Добавить номер</a>
+        {% endif %}
         <div class="rooms-list">
             {% for room in rooms %}
-    <h2>Room: {{ room.room_number }}</h2>
-    <img src="{% get_static_prefix %}{{ room.image.url }}" alt="Room Image" class="room-image">
-    <p>Type: {{ room.room_type }}</p>
-    <p>Price per night: {{ room.price_per_night }}</p>
-    <p>Max Occupancy: {{ room.max_occupancy }}</p>
-    
-    <h3>Amenities:</h3>
-    <ul>
-        {% for amenity in room.amenities.all %}
-            <li>{{ amenity.name }}</li>
-        {% endfor %}
-    </ul>
-{% endfor %}
+                <div class="room">
+                    <h2>{{ room.name }}</h2>
+                    <img src="{{ room.image.url }}" alt="Room Image" class="room-image">
+                    <p>Тип: {{ room.room_type }}</p>
+                    <p>Цена за ночь: {{ room.price_per_night }}</p>
+                    <p>Кол-во проживающих: {{ room.max_occupancy }}</p>
+                    <h3>Удобства:</h3>
+                    <ul>
+                        {% for amenity in room.amenities.all %}
+                            <li>{{ amenity.name }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% if user.is_superuser %}
+                        <a href="{% url 'edit_room' room.id %}" class="btn btn-warning">Редактировать</a>
+                    {% endif %}
+                    <button data-toggle="modal" data-target="#bookingModal">Забронировать</button>
+                </div>
+            {% endfor %}
         </div>
     </div>
 
@@ -134,35 +142,39 @@
                             </form>
                         </div>
                     </form>
-                        {% csrf_token %}
-                        <div class="form-group">
-                            <label for="guest_name">Имя гостя</label>
-                            <input type="text" class="form-control" id="guest_name" name="guest_name" value="{{ user.username }}" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="room">Комната заселения</label>
-                            <input type="text" class="form-control" id="room" name="room" value="{{ room.room_number }}" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="rating">Рейтинг</label>
-                            <select class="form-control" id="rating" name="rating" required>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
-                                <option value="5">5</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="comment">Комментарий</label>
-                            <textarea class="form-control" id="comment" name="comment" rows="3" required></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="review_date">Дата</label>
-                            <input type="text" class="form-control" id="review_date" name="review_date" value="{% now "Y-m-d" %}" readonly>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Отправить отзыв</button>
-                    </form>
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="guest_name">Имя гостя</label>
+                        <input type="text" class="form-control" id="guest_name" name="guest_name" value="{{ user.username }}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="room">Комната заселения</label>
+                        <select class="form-control" id="room" name="room" required>
+                            <option value="">Выберите комнату</option>
+                            {% for room in rooms %}
+                                <option value="{{ room.id }}">{{ room.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="rating">Рейтинг</label>
+                        <select class="form-control" id="rating" name="rating" required>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="comment">Комментарий</label>
+                        <textarea class="form-control" id="comment" name="comment" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="review_date">Дата</label>
+                        <input type="text" class="form-control" id="review_date" name="review_date" value="{% now "Y-m-d" %}" readonly>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Отправить отзыв</button>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
@@ -170,5 +182,44 @@
             </div>
         </div>
     </div>
+
+    <!-- Booking Modal
+    <div class="modal fade" id="bookingModal" tabindex="-1" role="dialog" aria-labelledby="bookingModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="bookingModalLabel">Забронировать номер</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="{% url 'book_room' %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="room">Номер</label>
+                            <select class="form-control" id="room" name="room" required>
+                                {% for room in rooms %}
+                                    <option value="{{ room.id }}">{{ room.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="check_in">Дата заезда</label>
+                            <input type="date" class="form-control" id="check_in" name="check_in" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="check_out">Дата выезда</label>
+                            <input type="date" class="form-control" id="check_out" name="check_out" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Забронировать</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div> -->
 </body>
 </html>

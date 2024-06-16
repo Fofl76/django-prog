@@ -4,7 +4,8 @@ from django.contrib import admin
 from .models import Guest, Room, Booking, Payment, Review, Amenity
 
 class AmenityInline(admin.TabularInline):
-    model = Room.amenities.through  
+    model = Room.amenities.through
+    extra = 1  
 
 @admin.register(Guest)
 class GuestAdmin(admin.ModelAdmin):
@@ -14,7 +15,7 @@ class GuestAdmin(admin.ModelAdmin):
 
 @admin.register(Room)
 class RoomAdmin(admin.ModelAdmin):
-    list_display = ('room_number', 'room_type', 'price_per_night', 'max_occupancy', 'image')
+    list_display = ('name', 'room_number', 'room_type', 'price_per_night', 'max_occupancy', 'image', 'display_amenities')
     list_filter = ('room_type',)
     search_fields = ('room_number', 'room_type')
     inlines = [AmenityInline]

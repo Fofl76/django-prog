@@ -1,5 +1,5 @@
 # bookings/views.py
-from django.shortcuts import render, redirect
+from django.shortcuts import render,  get_object_or_404, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from .models import Review, Room
 from .forms import ReviewForm
+from .forms import RoomForm
 
 def index(request):
     rooms = Room.objects.all()
@@ -61,20 +62,69 @@ def register(request):
         form = UserCreationForm()
     return render(request, 'bookings/register.html', {'form': form})
 
+@login_required
 def book_room(request, room_id):
-    # Реализуйте вашу логику бронирования здесь
-    return redirect('index')
+    room = get_object_or_404(Room, id=room_id)
+    if request.method == 'POST':
+        form = BookingForm(request.POST)
+        if form.is_valid():
+            check_in = form.cleaned_data['check_in']
+            check_out = form.cleaned_data['check_out']
+            total_price = room.price_per_night * (check_out - check_in).days
+            booking = Booking.objects.create(
+                guest=request.user.guest,  
+                room=room,
+                check_in=check_in,
+                check_out=check_out,
+                total_price=total_price
+            )
+            booking.save()
+            return redirect('index')  
+    else:
+        form = BookingForm(initial={'room': room.name})
+    return render(request, 'bookings/book_room.html', {'room': room, 'form': form})
 
 @login_required
+def review_list(request):
+    reviews = Review.objects.all()
+    rooms = Room.objects.all()
+    return render(request, 'bookings/review_list.html', {'reviews': reviews, 'rooms': rooms})
+
 def add_review(request):
-    if request.method == "POST":
+    if request.method == 'POST':
         form = ReviewForm(request.POST)
         if form.is_valid():
-            review = form.save(commit=False)
-            review.guest = request.user
-            review.review_date = timezone.now()
-            review.save()
-            return redirect('index')
+            form.save()
+            return redirect('review_list')
     else:
         form = ReviewForm()
-    return render(request, 'add_review.html', {'form': form})
+    return render(request, 'bookings/add_review.html', {'form': form})
+
+@login_required
+def add_room(request):
+    if request.user.is_superuser:
+        if request.method == 'POST':
+            form = RoomForm(request.POST, request.FILES)
+            if form.is_valid():
+                form.save()
+                return redirect('index')
+        else:
+            form = RoomForm()
+        return render(request, 'bookings/add_room.html', {'form': form})
+    else:
+        return redirect('index')
+
+@login_required
+def edit_room(request, room_id):
+    if request.user.is_superuser:
+        room = get_object_or_404(Room, id=room_id)
+        if request.method == 'POST':
+            form = RoomForm(request.POST, request.FILES, instance=room)
+            if form.is_valid():
+                form.save()
+                return redirect('index')
+        else:
+            form = RoomForm(instance=room)
+        return render(request, 'bookings/edit_room.html', {'form': form, 'room': room})
+    else:
+        return redirect('index')

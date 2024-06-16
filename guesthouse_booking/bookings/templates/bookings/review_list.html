@@ -1,0 +1,54 @@
+<!-- bookings/templates/bookings/review_list.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отзывы</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Отзывы</h1>
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addReviewModal">
+            Оставить отзыв
+        </button>
+        <ul class="list-group mt-3">
+            {% for review in reviews %}
+                <li class="list-group-item">
+                    <strong>{{ review.guest_name }}</strong> ({{ review.room.name }})
+                    <p>{{ review.comment }}</p>
+                    <small>{{ review.review_date }}</small>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="addReviewModal" tabindex="-1" role="dialog" aria-labelledby="addReviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addReviewModalLabel">Оставить отзыв</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="{% url 'add_review' %}">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-primary">Отправить отзыв</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

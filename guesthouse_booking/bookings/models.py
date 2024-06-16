@@ -8,12 +8,16 @@ class Amenity(models.Model):
     name = models.CharField(max_length=100)
 
 class Room(models.Model):
+    name = models.CharField(max_length=100)
     room_number = models.CharField(max_length=10)
     room_type = models.CharField(max_length=50)
     price_per_night = models.DecimalField(max_digits=6, decimal_places=2)
     max_occupancy = models.IntegerField()
     amenities = models.ManyToManyField('Amenity', blank=True)
     image = models.ImageField(upload_to= 'images/')
+    
+    def __str__(self):
+        return self.name
 
 class Guest(models.Model):
     first_name = models.CharField(max_length=100)
@@ -34,10 +38,11 @@ class Payment(models.Model):
     payment_date = models.DateField()
 
 class Review(models.Model):
-    room = models.ForeignKey('Room', on_delete=models.CASCADE, editable=True)
+    guest_name = models.CharField(max_length=100)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
     rating = models.IntegerField()
     comment = models.TextField()
-    review_date = models.DateTimeField(default=timezone.now)  
+    review_date = models.DateField(default=timezone.now)
 
     def __str__(self):
-        return f"Review {self.id} - {self.room}"
+        return f"Review by {self.guest_name} for {self.room.name}"
